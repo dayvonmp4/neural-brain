@@ -4,7 +4,7 @@
 
 export const CHEM = {
   dopamine: { label: 'Dopamine', hex: '#ffb23d' },
-  acetylcholine: { label: 'Acetylcholine', hex: '#3ee08f' },
+  acetylcholine: { label: 'Memory signal', hex: '#3ee08f' },
   glutamate: { label: 'Glutamate', hex: '#ff4fb0' },
   calm: { label: 'Anxiety circuit', hex: '#a98bff' },
   alarm: { hex: '#ff4a3d' },
@@ -47,13 +47,13 @@ export const STEPS = [
     },
   },
   {
-    id: 'nefiracetam',
+    id: 'prl853',
     chem: 'acetylcholine',
     kicker: 'Case 02',
-    title: 'Nefiracetam',
-    body: 'Acetylcholine fans out from the basal forebrain across the whole cortex and into the hippocampus, where new memories form.',
-    nat: 'Normal acetylcholine signal.',
-    enh: 'Nefiracetam keeps its receptors responding longer, so the same signal does more.',
+    title: 'PRL-8-53',
+    body: 'Acetylcholine is the brain\u2019s memory signal. It spreads from the basal forebrain across the cortex and into the hippocampus, where new memories form.',
+    nat: 'Normal memory signal.',
+    enh: 'One PRL-8-53 pill: about 45% more words remembered a week later. It likely boosts this signal.',
     view: [0.42, -0.7],
     dim: 0.5,
     pathways: { acetylcholine: run(CHEM.acetylcholine.hex) },
