@@ -5,7 +5,7 @@
 product
 
 ## Users
-Students and judges in a HOSA talk audience ("Our Tests Will Be Drug Tested"), sitting in a dimmed room, holding their own phones one-handed while listening to Devon present. They glance between the projector and their phone. Devon also runs the same page on the projector from a laptop.
+Students and judges in a HOSA talk audience ("Our Minds Will Be Drug Tested"), sitting in a dimmed room, holding their own phones one-handed while listening to Devon present. They glance between the projector and their phone. Devon also runs the same page on the projector from a laptop.
 
 ## Product Purpose
 A companion site for the talk: a glowing, spinnable neural brain. Each step shows one brain-enhancing drug's pathway lighting up in its chemical's colour, and a Natural / Enhanced toggle shows the brain before and after the drug. Devon tells the room when to tap to the next step; there is no server sync. Success: people see the mechanism happen, in their own hands, at the moment it is explained.

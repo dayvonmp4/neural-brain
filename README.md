@@ -1,6 +1,6 @@
 # neural-brain
 
-Audience companion site for the talk "Our Tests Will Be Drug Tested".
+Audience companion site for the talk "Our Minds Will Be Drug Tested".
 A glowing, spinnable neural brain; each step lights one brain-enhancing drug's
 pathway in its chemical's colour, with a Natural / Enhanced toggle.
 
