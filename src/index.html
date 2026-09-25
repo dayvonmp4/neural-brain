@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#020409">
+<meta name="description" content="A live neural map for the talk Our Tests Will Be Drug Tested: watch each brain-enhancing drug light up its pathway.">
+<title>Inside the Enhanced Brain</title>
+<style>
+  /* Tokens shared with the slide deck (drug-tested-talk.html) */
+  :root{
+    --ground:#020409;
+    --surface:oklch(0.200 0.007 240);
+    --hair:oklch(0.315 0.009 240);
+    --hair-soft:oklch(0.245 0.008 240);
+    --ink:oklch(0.965 0.004 240);
+    --muted:oklch(0.800 0.008 240);
+    --dim:oklch(0.660 0.010 240);
+    --signal:oklch(0.800 0.125 210);
+    --signal-low:oklch(0.470 0.070 210);
+    --chem:#4fd4e4;
+    --state:#4fd4e4;
+    --sans:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+    --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+    --e-quart:cubic-bezier(0.25,1,0.5,1);
+    --e-expo:cubic-bezier(0.16,1,0.3,1);
+    --z-canvas:0; --z-scrim:1; --z-ui:2; --z-chrome:3; --z-loading:4; --z-overlay:5;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html,body{height:100%; background:var(--ground); overflow:hidden; overscroll-behavior:none;}
+  body{color:var(--ink); font-family:var(--sans); -webkit-font-smoothing:antialiased;
+       -webkit-tap-highlight-color:transparent; -webkit-user-select:none; user-select:none;}
+  button{font:inherit; color:inherit; background:none; border:0; cursor:pointer;}
+  button:focus-visible{outline:2px solid var(--signal); outline-offset:3px;}
+
+  #c{position:fixed; inset:0; width:100%; height:100%; display:block; z-index:var(--z-canvas);
+     cursor:grab; touch-action:none; opacity:0; transition:opacity 1.2s var(--e-expo);}
+  body.ready #c{opacity:1;}
+  body.grabbing #c{cursor:grabbing;}
+  .vignette{position:fixed; inset:0; pointer-events:none; z-index:var(--z-scrim);
+    background:radial-gradient(ellipse at 50% 40%, transparent 50%, rgb(0 0 0 / .5) 100%);}
+
+  /* ---------- progress: one segment per step ---------- */
+  #progress{position:fixed; z-index:var(--z-chrome); left:16px; right:16px;
+    top:max(14px, env(safe-area-inset-top)); display:flex; gap:4px; pointer-events:none;}
+  #progress span{flex:1; height:3px; border-radius:2px; background:var(--hair-soft);
+    transition:background-color .3s var(--e-quart);}
+  #progress span.done{background:var(--signal-low);}
+  #progress span.on{background:var(--chem);}
+
+  /* ---------- panel: bottom sheet on phones, left column on wide screens ---------- */
+  #panel{position:fixed; z-index:var(--z-ui); left:0; right:0; bottom:0;
+    padding:72px 20px calc(18px + env(safe-area-inset-bottom));
+    background:linear-gradient(to top, var(--ground) 64%, rgb(2 4 9 / 0));
+    pointer-events:none;}
+  .inner{pointer-events:auto; max-width:560px; margin:0 auto;}
+  .meta{display:flex; align-items:center; justify-content:space-between;}
+  .chem{display:inline-flex; align-items:center; gap:9px; font-family:var(--mono);
+    font-size:13px; letter-spacing:.12em; text-transform:uppercase; color:var(--state);
+    transition:color .3s var(--e-quart);}
+  .chem i{width:9px; height:9px; border-radius:50%; background:var(--state);
+    box-shadow:0 0 12px var(--state); transition:background-color .3s var(--e-quart);}
+  #count{font-family:var(--mono); font-size:13px; letter-spacing:.08em; color:var(--dim);
+    font-variant-numeric:tabular-nums;}
+  #title{font-size:30px; line-height:1.1; font-weight:750; letter-spacing:-0.02em;
+    margin:10px 0 8px; text-wrap:balance;}
+  #body{font-size:16px; line-height:1.45; color:var(--muted); max-width:60ch; text-wrap:pretty;}
+  #state{font-size:15px; line-height:1.4; font-weight:600; color:var(--state);
+    margin-top:12px; min-height:2.8em; text-wrap:pretty; transition:color .3s var(--e-quart);}
+
+  .controls{display:grid; grid-template-columns:48px 1fr 48px; gap:10px; margin-top:14px; align-items:center;}
+  .nav{width:48px; height:48px; border-radius:50%; display:grid; place-items:center;
+    border:1px solid var(--hair); background:rgb(22 24 27 / .7); color:var(--ink);
+    transition:transform .15s var(--e-quart), opacity .2s, border-color .2s;}
+  .nav svg{width:20px; height:20px;}
+  .nav:active{transform:scale(.94);}
+  .nav:disabled{opacity:.28; cursor:default;}
+  .nav.next:not(:disabled){border-color:var(--chem);}
+  @media (hover:hover){ .nav:not(:disabled):hover{border-color:var(--ink);} }
+
+  #toggle{position:relative; height:48px; border-radius:999px; border:1px solid var(--hair);
+    display:grid; grid-template-columns:1fr 1fr; padding:3px; background:rgb(22 24 27 / .7);}
+  #toggle .thumb{position:absolute; top:3px; bottom:3px; left:3px; width:calc(50% - 3px);
+    border-radius:999px; background:var(--surface);
+    transition:transform .24s var(--e-quart), background-color .24s var(--e-quart);}
+  #toggle[data-on="enh"] .thumb{transform:translateX(100%); background:var(--state);}
+  #toggle button{position:relative; border-radius:999px; font-size:15px; font-weight:650;
+    color:var(--dim); transition:color .24s var(--e-quart);}
+  #toggle button[aria-checked="true"]{color:var(--ink);}
+  #toggle[data-on="enh"] #tEnh{color:#061016;}
+
+  .keys{display:none; white-space:nowrap; margin-top:16px; font-family:var(--mono); font-size:12px;
+    letter-spacing:.06em; color:var(--dim);}
+  .keys kbd{font-family:inherit; color:var(--muted); border:1px solid var(--hair);
+    border-radius:4px; padding:1px 5px; margin-right:2px;}
+
+  #qrOpen{display:none; position:fixed; z-index:var(--z-chrome); right:24px; top:30px;
+    font-family:var(--mono); font-size:12px; letter-spacing:.08em; color:var(--dim);
+    border:1px solid var(--hair); border-radius:999px; padding:8px 14px;}
+  #qrOpen:hover{color:var(--ink); border-color:var(--ink);}
+
+  /* step change: text settles in; state line crossfades */
+  #panel.swap #title, #panel.swap #body{animation:settle .42s var(--e-quart) both;}
+  #panel.swap #body{animation-delay:.04s;}
+  #state.flip{animation:fadeIn .3s var(--e-quart) both;}
+  @keyframes settle{from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:none;}}
+  @keyframes fadeIn{from{opacity:0;} to{opacity:1;}}
+
+  @media (pointer:fine){ .keys{display:block;} #qrOpen{display:block;} }
+
+  @media (min-width:900px) and (min-aspect-ratio:1/1){
+    #panel{right:auto; top:0; width:min(470px, 40vw); display:flex; align-items:flex-end;
+      padding:48px 44px 44px 52px;
+      background:linear-gradient(to right, rgb(2 4 9 / .92) 55%, rgb(2 4 9 / 0));}
+    .inner{margin:0; width:100%;}
+    #progress{right:auto; left:52px; width:calc(min(470px, 40vw) - 96px); top:34px;}
+    #title{font-size:44px; margin:14px 0 12px;}
+    #body{font-size:18px;}
+    #state{font-size:17px; margin-top:16px;}
+    .controls{margin-top:22px;}
+  }
+
+  /* ---------- loading + no-WebGL ---------- */
+  #loading{position:fixed; inset:0; z-index:var(--z-loading); display:grid; place-items:center;
+    pointer-events:none; transition:opacity .8s var(--e-quart);}
+  #loading p{font-family:var(--mono); font-size:13px; letter-spacing:.14em; text-transform:uppercase;
+    color:var(--dim); display:flex; flex-direction:column; align-items:center; gap:14px;}
+  #loading p::after{content:""; width:120px; height:2px; background:var(--signal-low);
+    transform-origin:left; animation:load 1.4s var(--e-quart) infinite;}
+  @keyframes load{from{transform:scaleX(0);} to{transform:scaleX(1); opacity:0;}}
+  body.ready #loading{opacity:0;}
+  #nogl{display:none; position:fixed; inset:0; z-index:var(--z-overlay); place-items:center;
+    padding:24px; text-align:center; font-size:17px; line-height:1.5; color:var(--muted);}
+  body.nogl #nogl{display:grid;} body.nogl #loading{display:none;}
+
+  /* ---------- presenter QR overlay (Q) ---------- */
+  #qr{position:fixed; inset:0; z-index:var(--z-overlay); background:rgb(2 4 9 / .94);
+    display:grid; place-items:center; cursor:pointer;}
+  #qr[hidden]{display:none;}
+  #qr .box{display:flex; flex-direction:column; align-items:center; gap:28px; text-align:center;}
+  #qr h2{font-size:44px; font-weight:750; letter-spacing:-0.02em;}
+  #qr .code{width:min(52vh, 420px); aspect-ratio:1; background:#fff; border-radius:12px; padding:18px;}
+  #qr .code svg{width:100%; height:100%; display:block;}
+  #qr .url{font-family:var(--mono); font-size:24px; color:var(--signal);}
+
+  .sr{position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap;}
+
+  @media (prefers-reduced-motion: reduce){
+    #c, #loading{transition:none;}
+    #panel.swap #title, #panel.swap #body, #state.flip, #loading p::after{animation:none;}
+    #toggle .thumb{transition:none;}
+  }
+</style>
+</head>
+<body>
+<canvas id="c" aria-label="Glowing 3D brain. Drag to rotate."></canvas>
+<div class="vignette"></div>
+
+<div id="progress" aria-hidden="true"></div>
+<button id="qrOpen" type="button">Show QR code</button>
+
+<section id="panel" aria-labelledby="title">
+  <div class="inner">
+    <div class="meta">
+      <span class="chem"><i></i><span id="chemLabel"></span></span>
+      <span id="count"></span>
+    </div>
+    <h1 id="title"></h1>
+    <p id="body"></p>
+    <p id="state" aria-live="polite"></p>
+    <div class="controls">
+      <button class="nav prev" id="prev" type="button" aria-label="Previous step">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>
+      </button>
+      <div id="toggle" role="radiogroup" aria-label="Brain state" data-on="nat">
+        <span class="thumb" aria-hidden="true"></span>
+        <button id="tNat" type="button" role="radio" aria-checked="true">Natural</button>
+        <button id="tEnh" type="button" role="radio" aria-checked="false">Enhanced</button>
+      </div>
+      <button class="nav next" id="next" type="button" aria-label="Next step">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg>
+      </button>
+    </div>
+    <p class="keys"><kbd>&larr;</kbd><kbd>&rarr;</kbd> step &nbsp;<kbd>E</kbd> toggle &nbsp;<kbd>Q</kbd> QR code</p>
+  </div>
+</section>
+<p class="sr" id="announce" aria-live="polite"></p>
+
+<div id="loading"><p>Wiring neurons</p></div>
+<div id="nogl"><p>This brain needs WebGL 2. Open the link in Safari or Chrome on a recent phone.</p></div>
+
+<div id="qr" hidden>
+  <div class="box">
+    <h2>Follow along on your phone</h2>
+    <div class="code"><!--__QR__--></div>
+    <p class="url">__URL_SHORT__</p>
+  </div>
+</div>
+
+<script>/*__APP__*/</script>
+</body>
+</html>
