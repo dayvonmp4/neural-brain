@@ -120,21 +120,14 @@
     .controls{margin-top:22px;}
   }
 
-  /* ---------- day counter (build-up steps) ---------- */
-  #days{position:fixed; z-index:var(--z-chrome); left:50%; top:calc(max(14px, env(safe-area-inset-top)) + 26px);
-    transform:translate(-50%, -6px); display:flex; flex-direction:column; align-items:center; gap:8px;
-    opacity:0; pointer-events:none; transition:opacity .4s var(--e-quart), transform .4s var(--e-quart);
-    padding:10px 26px 14px; background:radial-gradient(ellipse at center, rgb(2 4 9 / .78) 30%, rgb(2 4 9 / 0) 72%);}
-  #days.on{opacity:1; transform:translate(-50%, 0);}
-  #days .row{display:flex; align-items:baseline; gap:10px; white-space:nowrap;}
-  #days .dl{font-family:var(--mono); font-size:13px; letter-spacing:.14em; text-transform:uppercase; color:var(--dim);}
-  #dayN{font-family:var(--mono); font-size:34px; font-weight:700; color:var(--state); font-variant-numeric:tabular-nums; min-width:1ch;}
-  #dayTicks{display:flex; gap:5px;}
-  #dayTicks span{width:18px; height:3px; border-radius:2px; background:var(--hair-soft); transition:background-color .3s var(--e-quart);}
+  /* ---------- day counter (build-up steps): a row in the panel, like the progress bar ---------- */
+  #days{display:none; align-items:center; gap:12px; margin-top:12px;}
+  #days.on{display:flex;}
+  #days .dl{font-family:var(--mono); font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--dim);}
+  #dayN{font-family:var(--mono); font-size:15px; font-weight:700; color:var(--state); font-variant-numeric:tabular-nums; min-width:1ch;}
+  #dayTicks{flex:1; display:flex; gap:4px;}
+  #dayTicks span{flex:1; height:3px; border-radius:2px; background:var(--hair-soft); transition:background-color .3s var(--e-quart);}
   #dayTicks span.lit{background:var(--state);}
-  @media (min-width:900px) and (min-aspect-ratio:1/1){
-    #days{left:calc(min(470px, 40vw) + (100vw - min(470px, 40vw)) / 2 + 40px); top:40px;}
-  }
 
   /* ---------- loading + no-WebGL ---------- */
   #loading{position:fixed; inset:0; z-index:var(--z-loading); display:grid; place-items:center;
@@ -185,6 +178,10 @@
     <h1 id="title"></h1>
     <p id="body"></p>
     <p id="state" aria-live="polite"></p>
+    <div id="days" aria-hidden="true">
+      <span class="dl">Day</span><span id="dayN">0</span>
+      <div id="dayTicks"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
+    </div>
     <div class="controls">
       <button class="nav prev" id="prev" type="button" aria-label="Previous step">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>
@@ -201,10 +198,6 @@
     <p class="keys"><kbd>&larr;</kbd><kbd>&rarr;</kbd> step &nbsp;<kbd>E</kbd> toggle &nbsp;<kbd>Q</kbd> QR code</p>
   </div>
 </section>
-<div id="days" aria-hidden="true">
-  <div class="row"><span class="dl">Day</span><span id="dayN">1</span><span class="dl">on bromantane</span></div>
-  <div id="dayTicks"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
-</div>
 <p class="sr" id="announce" aria-live="polite"></p>
 
 <div id="loading"><p>Wiring neurons</p></div>

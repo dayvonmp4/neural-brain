@@ -331,7 +331,9 @@ function applyState() {
     ramp = { t0: performance.now(), dur: s.buildup.seconds * 1000, days: s.buildup.days, glowFrom, glowTo, paths0, paths1 };
     renderDays(1);
   }
-  $('days').classList.toggle('on', !!ramp);
+  // the day row shows on build-up steps in both states: Day 0 before the drug, then counting
+  $('days').classList.toggle('on', !!s.buildup);
+  if (s.buildup && !enhanced) renderDays(0);
   wave = s.wave && enhanced ? s.wave : null;
   if (wave) {
     const o = wave.from === 'pfc' ? PFC_CENTRE : ANCHORS[wave.from];
