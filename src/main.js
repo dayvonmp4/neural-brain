@@ -286,6 +286,13 @@ const glowColorTarget = Array.from({ length: NR }, () => new THREE.Color(0xfffff
 let dimTarget = 1, actTarget = 1, act = 1, flickerRegion = -1;
 let wave = null, waveClock = 0, waveAmp = 0;
 let stepIndex = 0, enhanced = false, autoTimer = 0, userToggled = false;
+let ramp = null, shownDay = 0;
+function renderDays(day) {
+  if (day === shownDay) return;
+  shownDay = day;
+  $('dayN').textContent = day;
+  [...$('dayTicks').children].forEach((el, k) => el.classList.toggle('lit', k < day));
+}
 
 function applyState() {
   const s = STEPS[stepIndex];
@@ -295,7 +302,7 @@ function applyState() {
     const cfg = s.pathways[name];
     if (cfg) {
       const c = cfg[key];
-      ps.target = { i: 1, b: c.b, flow: c.flow };
+      ps.target = { i: 1, b: c.b, flow: c.flow, gate: c.gate ?? 1 };
       ps.colorTarget.set(c.color);
       if (ps.cur.i < 0.02) ps.color.set(c.color);   // appearing: no colour sweep
       paths[name].group.visible = true;
@@ -304,6 +311,7 @@ function applyState() {
     }
   }
   glowTarget.fill(0);
+  ramp = null;
   const g = (s.glow && s.glow[key]) || {};
   for (const [region, [hex, amt]] of Object.entries(g)) {
     const i = REGIONS.indexOf(region);
@@ -314,6 +322,16 @@ function applyState() {
   flickerRegion = s.flicker && s.flicker[key] ? REGIONS.indexOf(s.flicker[key]) : -1;
   dimTarget = s.dim;
   actTarget = s.activity ? s.activity[key] : 1;
+  // build-up steps: ease from the natural state to the enhanced one, one day at a time
+  if (s.buildup && enhanced) {
+    const glowFrom = new Array(NR).fill(0), glowTo = glowTarget.slice();
+    for (const [region, [, amt]] of Object.entries((s.glow && s.glow.nat) || {})) glowFrom[REGIONS.indexOf(region)] = amt;
+    const paths0 = {}, paths1 = {};
+    for (const name in s.pathways) { paths0[name] = s.pathways[name].nat; paths1[name] = s.pathways[name].enh; }
+    ramp = { t0: performance.now(), dur: s.buildup.seconds * 1000, days: s.buildup.days, glowFrom, glowTo, paths0, paths1 };
+    renderDays(1);
+  }
+  $('days').classList.toggle('on', !!ramp);
   wave = s.wave && enhanced ? s.wave : null;
   if (wave) {
     const o = wave.from === 'pfc' ? PFC_CENTRE : ANCHORS[wave.from];
@@ -474,14 +492,29 @@ function frame() {
     uniforms.uGlowColor.value[i].lerp(glowColorTarget[i], e(3));
   }
 
+  // build-up: move every target a day at a time toward the enhanced state
+  if (ramp) {
+    const p = reduceMotion ? 1 : Math.min(1, (now - ramp.t0) / ramp.dur);
+    const day = Math.min(ramp.days, 1 + Math.floor(p * ramp.days));
+    const k = (day - 1) / (ramp.days - 1);                  // 0 on day 1, 1 on the last day
+    const L = (a, b) => a + (b - a) * k;
+    for (const name in ramp.paths1) {
+      const a = ramp.paths0[name], b = ramp.paths1[name], ps = pathState[name];
+      ps.target = { i: 1, b: L(a.b, b.b), flow: L(a.flow, b.flow), gate: L(a.gate ?? 1, b.gate ?? 1) };
+    }
+    for (let i = 0; i < NR; i++) glowTarget[i] = L(ramp.glowFrom[i], ramp.glowTo[i]);
+    renderDays(day);
+  }
+
   // pathways ease toward their step targets; flow is integrated so speed changes never jump
   for (const name in paths) {
     const ps = pathState[name], u = paths[name].uniforms;
     ps.cur.i += (ps.target.i - ps.cur.i) * e(3);
     ps.cur.b += (ps.target.b - ps.cur.b) * e(2.5);
     ps.cur.flow += (ps.target.flow - ps.cur.flow) * e(2.5);
+    ps.cur.gate += ((ps.target.gate ?? 1) - ps.cur.gate) * e(3);
     ps.color.lerp(ps.colorTarget, e(2.5));
-    u.uI.value = ps.cur.i; u.uB.value = ps.cur.b; u.uColor.value.copy(ps.color);
+    u.uI.value = ps.cur.i; u.uB.value = ps.cur.b; u.uGate.value = ps.cur.gate; u.uColor.value.copy(ps.color);
     u.uPhase.value += dt * ps.cur.flow;
     u.uPixel.value = uniforms.uPixel.value * uniforms.uScreen.value;
     if (ps.cur.i < 0.005 && ps.target.i === 0) paths[name].group.visible = false;
@@ -510,7 +543,7 @@ function boot() {
   for (const [name, p] of Object.entries(paths)) {
     brain.add(p.group);
     pathState[name] = {
-      cur: { i: 0, b: 0.3, flow: 0.3 }, target: { i: 0, b: 0.3, flow: 0.3 },
+      cur: { i: 0, b: 0.3, flow: 0.3, gate: 1 }, target: { i: 0, b: 0.3, flow: 0.3, gate: 1 },
       color: new THREE.Color(), colorTarget: new THREE.Color(),
     };
   }

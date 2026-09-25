@@ -91,6 +91,7 @@ function makePathway(fibres, rand) {
     uColor: { value: new THREE.Color(0xffffff) },
     uI: { value: 0 },          // visibility 0..1
     uB: { value: 0.3 },        // brightness
+    uGate: { value: 1 },       // share of trips that fire: low = sporadic, 1 = steady
     uPhase: { value: 0 },      // accumulated flow time
     uPixel: { value: 1 },
   };
@@ -147,17 +148,19 @@ function makePathway(fibres, rand) {
   const pts = new THREE.Points(pg, new THREE.ShaderMaterial({
     uniforms, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending,
     vertexShader: /* glsl */ `
-      uniform float uPhase, uPixel, uI, uB;
+      uniform float uPhase, uPixel, uI, uB, uGate;
       attribute vec3 aB, aC; attribute float aOff, aSpd, aK;
       varying float vA, vCore;
       void main() {
-        float t = fract(uPhase * aSpd * 0.45 + aOff) - aK * 0.016;
+        float cyc = uPhase * aSpd * 0.45 + aOff;
+        float t = fract(cyc) - aK * 0.016;
+        float fires = step(fract(sin(floor(cyc) * 12.9898 + aOff * 78.233) * 43758.5453), uGate);
         float u = 1.0 - t;
         vec3 p = u * u * position + 2.0 * u * t * aB + t * t * aC;
         vec4 mv = modelViewMatrix * vec4(p, 1.0);
         gl_Position = projectionMatrix * mv;
         float ends = smoothstep(0.0, 0.06, t) * smoothstep(1.0, 0.9, t) * step(0.0, t);
-        vA = uI * uB * ends * (1.0 - aK / ${TRAIL.toFixed(1)});
+        vA = uI * uB * ends * fires * (1.0 - aK / ${TRAIL.toFixed(1)});
         vCore = aK < 0.5 ? 1.0 : 0.0;
         gl_PointSize = (5.5 - aK * 0.8) * (0.6 + 0.4 * uB) * uPixel * (5.2 / -mv.z);
       }`,

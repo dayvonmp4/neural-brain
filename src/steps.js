@@ -40,7 +40,9 @@ export const STEPS = [
     enh: 'Bromantane helps your brain make more dopamine, so motivation keeps building for days.',
     view: [0.12, -1.25],
     dim: 0.5,
-    pathways: { dopamine: run(CHEM.dopamine.hex) },
+    pathways: { dopamine: run(CHEM.dopamine.hex, { b: 0.3, flow: 0.3, gate: 0.3 }, { b: 1, flow: 1, gate: 1 }) },
+    // Enhanced plays a day counter: release goes from sporadic to strong and steady
+    buildup: { days: 7, seconds: 7 },
     glow: {
       nat: { vta: ['#ffb23d', 0.4] },
       enh: { vta: ['#ffb23d', 1], accumbens: ['#ffb23d', 1], frontal: ['#ffb23d', 0.35] },
