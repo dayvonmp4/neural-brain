@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0b0d10">
+<title>What should I teach next?</title>
+<style>
+  /* Audience form shown by QR on the deck's last slide.
+     PLACEHOLDER: the topics below are samples, and answers are not sent anywhere yet
+     (see submit handler at the bottom). */
+  :root{
+    --ground: oklch(0.145 0.005 240);
+    --surface: oklch(0.200 0.007 240);
+    --hair: oklch(0.315 0.009 240);
+    --ink: oklch(0.965 0.004 240);
+    --muted: oklch(0.780 0.008 240);
+    --dim: oklch(0.640 0.010 240);
+    --signal: oklch(0.800 0.125 210);
+    --signal-fill: oklch(0.315 0.050 210);
+    --sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    --e-quart: cubic-bezier(0.25, 1, 0.5, 1);
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html{background:var(--ground); color-scheme:dark;}
+  body{min-height:100dvh; color:var(--ink); font-family:var(--sans); -webkit-font-smoothing:antialiased;
+    display:flex; justify-content:center; padding:max(28px, env(safe-area-inset-top)) 20px max(28px, env(safe-area-inset-bottom));}
+  main{width:100%; max-width:520px; display:flex; flex-direction:column;}
+  .brand{width:48px; height:3px; background:var(--signal); margin:8px 0 26px;}
+  .tag{font-family:var(--mono); font-size:13px; letter-spacing:.14em; text-transform:uppercase; color:var(--signal);}
+  h1{font-size:34px; line-height:1.1; letter-spacing:-0.025em; font-weight:750; margin:12px 0 10px; text-wrap:balance;}
+  .lede{font-size:17px; line-height:1.5; color:var(--muted);}
+  fieldset{border:0; margin:28px 0 0; display:flex; flex-direction:column; gap:10px;}
+  legend{font-family:var(--mono); font-size:12px; letter-spacing:.12em; text-transform:uppercase; color:var(--dim); margin-bottom:12px;}
+  .opt{position:relative; display:flex; align-items:center; gap:14px; min-height:60px; padding:14px 16px;
+    background:var(--surface); border:1px solid transparent; border-radius:12px; cursor:pointer;
+    transition:border-color .2s var(--e-quart), background .2s var(--e-quart);}
+  .opt input{position:absolute; opacity:0; pointer-events:none;}
+  .opt .dot{flex:none; width:22px; height:22px; border-radius:50%; border:2px solid var(--hair); display:grid; place-items:center;
+    transition:border-color .2s var(--e-quart);}
+  .opt .dot::after{content:""; width:10px; height:10px; border-radius:50%; background:var(--signal); transform:scale(0);
+    transition:transform .22s var(--e-quart);}
+  .opt .t{font-size:17px; font-weight:600; line-height:1.3;}
+  .opt .t small{display:block; font-size:14px; font-weight:400; color:var(--dim); margin-top:3px;}
+  .opt:has(input:checked){border-color:var(--signal); background:var(--signal-fill);}
+  .opt:has(input:checked) .dot{border-color:var(--signal);}
+  .opt:has(input:checked) .dot::after{transform:scale(1);}
+  .opt:has(input:focus-visible){outline:2px solid var(--signal); outline-offset:2px;}
+  #otherText{display:none; width:100%; margin-top:2px; padding:14px 16px; font:inherit; font-size:17px; color:var(--ink);
+    background:var(--ground); border:1px solid var(--hair); border-radius:12px; outline:none;}
+  #otherText:focus{border-color:var(--signal);}
+  form:has(#otherRadio:checked) #otherText{display:block;}
+  button{width:100%; margin-top:26px; min-height:56px; border:0; border-radius:12px; background:var(--signal); color:oklch(0.16 0.02 210);
+    font:inherit; font-size:18px; font-weight:700; cursor:pointer; transition:opacity .2s;}
+  button:disabled{opacity:.35; cursor:default;}
+  .fine{margin-top:14px; font-size:13px; color:var(--dim); text-align:center;}
+  #done{display:none; margin-top:36px;}
+  #done h2{font-size:30px; letter-spacing:-0.02em; font-weight:750; margin-bottom:10px;}
+  #done p{font-size:17px; line-height:1.5; color:var(--muted);}
+  body.sent form{display:none;} body.sent #done{display:block; animation:settle .5s var(--e-quart) both;}
+  @keyframes settle{from{opacity:0; transform:translateY(8px);}}
+  @media (prefers-reduced-motion: reduce){ *{transition:none !important; animation:none !important;} }
+</style>
+</head>
+<body>
+<main>
+  <div class="brand"></div>
+  <div class="tag">Our Tests Will Be Drug Tested</div>
+  <h1>What should I teach next?</h1>
+  <p class="lede">Pick the one you would most want to hear about. It takes five seconds.</p>
+
+  <form id="f" novalidate>
+    <fieldset>
+      <legend>Choose one</legend>
+      <!-- PLACEHOLDER topics: swap for Devon's real choices -->
+      <label class="opt"><input type="radio" name="topic" value="peptides"><span class="dot"></span>
+        <span class="t">Peptides<small>What they are and why athletes use them</small></span></label>
+      <label class="opt"><input type="radio" name="topic" value="drug-tests"><span class="dot"></span>
+        <span class="t">How drug tests actually work<small>What a lab can and cannot see</small></span></label>
+      <label class="opt"><input type="radio" name="topic" value="sleep-memory"><span class="dot"></span>
+        <span class="t">Sleep and memory<small>What happens to studying overnight</small></span></label>
+      <label class="opt"><input type="radio" name="topic" value="fda"><span class="dot"></span>
+        <span class="t">How a drug gets approved<small>From lab to pharmacy shelf</small></span></label>
+      <label class="opt"><input type="radio" name="topic" value="other" id="otherRadio"><span class="dot"></span>
+        <span class="t">Something else</span></label>
+      <input id="otherText" name="other" type="text" maxlength="120" placeholder="Tell me the topic" autocomplete="off">
+    </fieldset>
+    <button type="submit" id="go" disabled>Send my pick</button>
+    <p class="fine">Anonymous. No name or email needed.</p>
+  </form>
+
+  <div id="done" role="status">
+    <h2>Got it. Thank you.</h2>
+    <p>The most-picked topic is what I'll build next.</p>
+  </div>
+</main>
+<script>
+  var f = document.getElementById('f'), go = document.getElementById('go'), other = document.getElementById('otherText');
+  function ready() {
+    var pick = f.querySelector('input[name="topic"]:checked');
+    go.disabled = !pick || (pick.value === 'other' && !other.value.trim());
+  }
+  f.addEventListener('change', function (e) { ready(); if (e.target.id === 'otherRadio') other.focus(); });
+  other.addEventListener('input', ready);
+  f.addEventListener('submit', function (e) {
+    e.preventDefault();
+    if (go.disabled) return;
+    // PLACEHOLDER: answers are not stored yet. Hook a real endpoint in here before the talk.
+    document.body.classList.add('sent');
+  });
+</script>
+</body>
+</html>

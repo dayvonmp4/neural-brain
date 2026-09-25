@@ -4,6 +4,8 @@
 #   docs/index.html                         -> published by GitHub Pages
 #   ~/Desktop/Web-Files/neural-brain.html   -> local copy for the projector
 #   ~/Desktop/Web-Files/neural-brain-qr.png -> QR code for the slides
+#   docs/next/index.html                    -> "what should I teach next" form (src/next.html)
+#   ~/Desktop/Web-Files/next-topic-form.html + next-topic-qr.png
 set -e
 cd "$(dirname "$0")"
 URL="https://dayvonmp4.github.io/neural-brain/"
@@ -25,4 +27,10 @@ fs.writeFileSync('docs/index.html', html);
 fs.writeFileSync(local, html);
 await QRCode.toFile(`${os.homedir()}/Desktop/Web-Files/neural-brain-qr.png`, url, { width: 1024, margin: 2 });
 console.log('wrote docs/index.html + ' + local, Math.round(html.length / 1024) + ' KB');
+const nextUrl = url + 'next/';
+fs.mkdirSync('docs/next', { recursive: true });
+fs.copyFileSync('src/next.html', 'docs/next/index.html');
+fs.copyFileSync('src/next.html', `${os.homedir()}/Desktop/Web-Files/next-topic-form.html`);
+await QRCode.toFile(`${os.homedir()}/Desktop/Web-Files/next-topic-qr.png`, nextUrl, { width: 1024, margin: 2 });
+console.log('wrote docs/next/index.html -> ' + nextUrl);
 EOF
