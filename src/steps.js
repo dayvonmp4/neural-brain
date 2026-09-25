@@ -107,7 +107,7 @@ export const STEPS = [
     id: 'all',
     chem: 'signal',
     title: 'Four drugs, four pathways',
-    body: 'Three of these four are invisible to routine drug panels.',
+    body: 'Today’s drug tests miss three of these four. A lab could find them, if someone decides to look.',
     nat: 'A natural brain.',
     enh: 'An enhanced brain.',
     view: [0.25, -0.9],
