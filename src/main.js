@@ -487,7 +487,7 @@ function frame() {
     if (ps.cur.i < 0.005 && ps.target.i === 0) paths[name].group.visible = false;
   }
 
-  // expanding ripple (TAK-653, ketamine)
+  // expanding ripple (TAK-653)
   if (wave) {
     waveClock += dt;
     if (waveClock > wave.period) waveClock = 0;

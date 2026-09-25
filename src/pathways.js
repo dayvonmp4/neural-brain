@@ -33,7 +33,6 @@ export function buildPathways(data) {
   };
   const pfc = (s) => pick(p => p[2] > 0.5 && p[1] > -0.25 && Math.sign(p[0]) === s);
   const cortex = (s) => pick(p => p[3] <= 3 && Math.sign(p[0]) === s);
-  const frontal = (s) => pick(p => p[2] > 0.3 && Math.sign(p[0]) === s);
   const S = () => (rand() < 0.5 ? -1 : 1);
 
   // control point: between the ends, lifted, and pulled toward the midline
@@ -76,14 +75,6 @@ export function buildPathways(data) {
       for (let i = 0; i < 34; i++) { const s = S(), a = jit(side(A.amy, s), 0.025), b = pfc(s); f.push([a, ctrl(a, b, 0.14, 0.3), b]); }
       for (let i = 0; i < 16; i++) { const s = S(), a = jit(side(A.amy, s), 0.025), b = jit(A.hypo, 0.02); f.push([a, ctrl(a, b, -0.02, 0), b]); }
       for (let i = 0; i < 16; i++) { const s = S(), a = jit(side(A.amy, s), 0.025), b = jit(A.stem, 0.03); f.push([a, ctrl(a, b, -0.05, 0), b]); }
-      return f;
-    },
-    // ketamine: a prefrontal surge (local fibres), fed by thalamus + hippocampus
-    burst() {
-      const f = [];
-      for (let i = 0; i < 56; i++) { const s = S(), a = frontal(s), b = frontal(s); f.push([a, ctrl(a, b, 0.08, 0), b]); }
-      for (let i = 0; i < 20; i++) { const s = S(), a = jit(side(A.thal, s), 0.03), b = pfc(s); f.push([a, ctrl(a, b, 0.15, 0.2), b]); }
-      for (let i = 0; i < 16; i++) { const s = S(), a = jit(side(A.hip, s), 0.035), b = pfc(s); f.push([a, ctrl(a, b, 0.2, 0.25), b]); }
       return f;
     },
   };

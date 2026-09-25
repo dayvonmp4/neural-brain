@@ -1,4 +1,4 @@
-// The talk, one step per drug. Order matches the deck (cases 01-05).
+// The talk, one step per drug. Order matches the deck (cases 01-04).
 // Each step sets: which pathways run, how regions glow, where the camera
 // looks, and what changes between Natural and Enhanced.
 
@@ -53,7 +53,7 @@ export const STEPS = [
     title: 'Nefiracetam',
     body: 'Acetylcholine fans out from the basal forebrain across the whole cortex and into the hippocampus, where new memories form.',
     nat: 'Normal acetylcholine signal.',
-    enh: 'Nefiracetam holds its receptors open longer, so the same signal does more.',
+    enh: 'Nefiracetam keeps its receptors responding longer, so the same signal does more.',
     view: [0.42, -0.7],
     dim: 0.5,
     pathways: { acetylcholine: run(CHEM.acetylcholine.hex) },
@@ -69,7 +69,7 @@ export const STEPS = [
     title: 'TAK-653',
     body: 'Glutamate is the brain’s main “go” signal, and the AMPA receptor is what hears it. It carries learning from the hippocampus to the front of the brain.',
     nat: 'Normal glutamate traffic.',
-    enh: 'TAK-653 turns up the AMPA receptor. Connections strengthen and new synapses form.',
+    enh: 'TAK-653 turns up the AMPA receptor. In rodents, connections strengthen and new synapses form.',
     view: [0.1, -1.4],
     dim: 0.5,
     pathways: { glutamate: run(CHEM.glutamate.hex) },
@@ -86,7 +86,7 @@ export const STEPS = [
     title: 'GB-115',
     body: 'Under stress the amygdala fires, sending alarm signals to the front of the brain and the brainstem. CCK is one of the molecules that sets off panic.',
     nat: 'Alarm signal running.',
-    enh: 'GB-115 blocks the CCK panic signal. The alarm goes quiet and thinking stays sharp.',
+    enh: 'GB-115 blocks the CCK panic signal. In early studies, anxiety dropped without sedation.',
     view: [-0.05, -1.15],
     dim: 0.5,
     pathways: {
@@ -102,27 +102,10 @@ export const STEPS = [
     flicker: { nat: 'amygdala' },
   },
   {
-    id: 'ketamine',
-    chem: 'glutamate',
-    kicker: 'Case 05',
-    title: 'Ketamine',
-    body: 'Ketamine takes the brakes off neurons in the front of the brain, releasing a surge of glutamate.',
-    nat: 'Normal activity.',
-    enh: 'A glutamate surge, then new synapses grow within 24 hours.',
-    view: [0.15, -0.5],
-    dim: 0.5,
-    pathways: { burst: run(CHEM.glutamate.hex, { b: 0.25, flow: 0.3 }, { b: 1, flow: 1.6 }) },
-    glow: {
-      nat: { frontal: ['#ff4fb0', 0.12] },
-      enh: { frontal: ['#ff4fb0', 0.75], thalamus: ['#ff4fb0', 0.6] },
-    },
-    wave: { from: 'pfc', color: '#ff8fcf', period: 2.6, amp: 0.6 },
-  },
-  {
     id: 'all',
     chem: 'signal',
-    title: 'Five drugs, five pathways',
-    body: 'Three of these five would pass every drug panel that exists.',
+    title: 'Four drugs, four pathways',
+    body: 'Three of these four are invisible to routine drug panels.',
     nat: 'A natural brain.',
     enh: 'An enhanced brain.',
     view: [0.25, -0.9],
@@ -133,7 +116,6 @@ export const STEPS = [
       acetylcholine: run(CHEM.acetylcholine.hex, { b: 0.18, flow: 0.25 }, { b: 0.7, flow: 1 }),
       glutamate: run(CHEM.glutamate.hex, { b: 0.18, flow: 0.25 }, { b: 0.7, flow: 1 }),
       alarm: run(CHEM.calm.hex, { b: 0.15, flow: 0.25 }, { b: 0.6, flow: 0.5 }),
-      burst: run(CHEM.glutamate.hex, { b: 0.12, flow: 0.25 }, { b: 0.55, flow: 1.3 }),
     },
     glow: {
       enh: { vta: ['#ffb23d', 0.35], accumbens: ['#ffb23d', 0.35], basalForebrain: ['#3ee08f', 0.35], hippocampus: ['#ff4fb0', 0.35], amygdala: ['#a98bff', 0.25] },
