@@ -131,7 +131,7 @@
 
 <div class="bar">
   <div class="in">
-    <p class="status" id="status" aria-live="polite">Rate at least one topic</p>
+    <p class="status" id="status" aria-live="polite">0 of 4 rated</p>
     <button class="go" id="go" form="f" type="submit" disabled>Send my ratings</button>
   </div>
 </div>
@@ -140,10 +140,10 @@
 (function () {
   var ENDPOINT = '__ENDPOINT__';
   var TOPICS = [
-    { id: 'peptides', name: 'Peptides', desc: 'Short protein chains like BPC-157 and GLP-1 drugs such as Ozempic. What is proven and what is hype.' },
-    { id: 'skincare', name: 'Pharmaceutical Skincare', desc: 'Tretinoin, retinoids and other prescription actives, and how they actually change skin.' },
-    { id: 'peds', name: 'Performance Enhancing Drugs', desc: 'Steroids, EPO and SARMs: what they do in the body and how drug tests catch them.' },
-    { id: 'height', name: 'Height Pharmacology', desc: 'Growth hormone, growth plates, and whether any drug can really add height.' }
+    { id: 'peptides', name: 'Peptides', desc: 'Short protein chains, such as retatrutide, BPC-157 and GHK-Cu. An overview.' },
+    { id: 'skincare', name: 'Pharmaceutical Skincare', desc: 'Skin mechanisms and how they respond to certain pharmaceuticals.' },
+    { id: 'peds', name: 'Performance Enhancing Drugs', desc: 'What\u2019s banned and what\u2019s not, and why: stimulants, anabolics and more.' },
+    { id: 'height', name: 'Height Pharmacology', desc: 'How potential height can be maximized through pharmacology (not just HGH).' }
   ];
   var WORDS = ['Tap to rate', 'Not for me', 'Probably not', 'Maybe', 'Really want it', 'Teach this next'];
   var KEY = 'nb-next-v1';
@@ -258,9 +258,9 @@
   function rated() { return TOPICS.filter(function (t) { return state.ratings[t.id] > 0; }).length; }
   function refresh() {
     var n = rated();
-    go.disabled = n === 0;
+    go.disabled = n < TOPICS.length; // every topic must be rated before sending
     status.className = 'status';
-    status.textContent = n === 0 ? 'Rate at least one topic' : n === TOPICS.length ? 'All four rated' : n + ' of 4 rated';
+    status.textContent = n === TOPICS.length ? 'All four rated' : n + ' of 4 rated';
   }
 
   // ---------- send ----------
