@@ -4,111 +4,324 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#0b0d10">
+<meta name="description" content="Rate the four topics Devon could teach next, after the talk Our Minds Will Be Drug Tested.">
 <title>What should I teach next?</title>
 <style>
-  /* Audience form shown by QR on the deck's last slide.
-     PLACEHOLDER: the topics below are samples, and answers are not sent anywhere yet
-     (see submit handler at the bottom). */
+  /* Audience rating form, reached by QR from the deck's last slide.
+     Ratings go to a Google Apps Script web app (apps-script/Code.gs); build.sh injects its URL. */
   :root{
     --ground: oklch(0.145 0.005 240);
-    --surface: oklch(0.200 0.007 240);
     --hair: oklch(0.315 0.009 240);
+    --hair-soft: oklch(0.245 0.008 240);
     --ink: oklch(0.965 0.004 240);
     --muted: oklch(0.780 0.008 240);
-    --dim: oklch(0.640 0.010 240);
+    --dim: oklch(0.680 0.010 240);
     --signal: oklch(0.800 0.125 210);
-    --signal-fill: oklch(0.315 0.050 210);
+    --signal-low: oklch(0.470 0.070 210);
+    --warn: oklch(0.800 0.120 60);
     --sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
     --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
     --e-quart: cubic-bezier(0.25, 1, 0.5, 1);
+    --e-expo: cubic-bezier(0.16, 1, 0.3, 1);
+    --z-bar: 10;
   }
   *{box-sizing:border-box; margin:0; padding:0;}
-  html{background:var(--ground); color-scheme:dark;}
+  html{background:var(--ground); color-scheme:dark; -webkit-text-size-adjust:100%;}
   body{min-height:100dvh; color:var(--ink); font-family:var(--sans); -webkit-font-smoothing:antialiased;
-    display:flex; justify-content:center; padding:max(28px, env(safe-area-inset-top)) 20px max(28px, env(safe-area-inset-bottom));}
-  main{width:100%; max-width:520px; display:flex; flex-direction:column;}
-  .brand{width:48px; height:3px; background:var(--signal); margin:8px 0 26px;}
-  .tag{font-family:var(--mono); font-size:13px; letter-spacing:.14em; text-transform:uppercase; color:var(--signal);}
-  h1{font-size:34px; line-height:1.1; letter-spacing:-0.025em; font-weight:750; margin:12px 0 10px; text-wrap:balance;}
-  .lede{font-size:17px; line-height:1.5; color:var(--muted);}
-  fieldset{border:0; margin:28px 0 0; display:flex; flex-direction:column; gap:10px;}
-  legend{font-family:var(--mono); font-size:12px; letter-spacing:.12em; text-transform:uppercase; color:var(--dim); margin-bottom:12px;}
-  .opt{position:relative; display:flex; align-items:center; gap:14px; min-height:60px; padding:14px 16px;
-    background:var(--surface); border:1px solid transparent; border-radius:12px; cursor:pointer;
-    transition:border-color .2s var(--e-quart), background .2s var(--e-quart);}
-  .opt input{position:absolute; opacity:0; pointer-events:none;}
-  .opt .dot{flex:none; width:22px; height:22px; border-radius:50%; border:2px solid var(--hair); display:grid; place-items:center;
-    transition:border-color .2s var(--e-quart);}
-  .opt .dot::after{content:""; width:10px; height:10px; border-radius:50%; background:var(--signal); transform:scale(0);
-    transition:transform .22s var(--e-quart);}
-  .opt .t{font-size:17px; font-weight:600; line-height:1.3;}
-  .opt .t small{display:block; font-size:14px; font-weight:400; color:var(--dim); margin-top:3px;}
-  .opt:has(input:checked){border-color:var(--signal); background:var(--signal-fill);}
-  .opt:has(input:checked) .dot{border-color:var(--signal);}
-  .opt:has(input:checked) .dot::after{transform:scale(1);}
-  .opt:has(input:focus-visible){outline:2px solid var(--signal); outline-offset:2px;}
-  #otherText{display:none; width:100%; margin-top:2px; padding:14px 16px; font:inherit; font-size:17px; color:var(--ink);
-    background:var(--ground); border:1px solid var(--hair); border-radius:12px; outline:none;}
-  #otherText:focus{border-color:var(--signal);}
-  form:has(#otherRadio:checked) #otherText{display:block;}
-  button{width:100%; margin-top:26px; min-height:56px; border:0; border-radius:12px; background:var(--signal); color:oklch(0.16 0.02 210);
-    font:inherit; font-size:18px; font-weight:700; cursor:pointer; transition:opacity .2s;}
-  button:disabled{opacity:.35; cursor:default;}
-  .fine{margin-top:14px; font-size:13px; color:var(--dim); text-align:center;}
-  #done{display:none; margin-top:36px;}
-  #done h2{font-size:30px; letter-spacing:-0.02em; font-weight:750; margin-bottom:10px;}
-  #done p{font-size:17px; line-height:1.5; color:var(--muted);}
-  body.sent form{display:none;} body.sent #done{display:block; animation:settle .5s var(--e-quart) both;}
-  @keyframes settle{from{opacity:0; transform:translateY(8px);}}
-  @media (prefers-reduced-motion: reduce){ *{transition:none !important; animation:none !important;} }
+    -webkit-tap-highlight-color:transparent;}
+  main{max-width:560px; margin:0 auto; padding:max(28px, env(safe-area-inset-top)) 20px calc(132px + env(safe-area-inset-bottom));}
+
+  .brand{width:44px; height:3px; background:var(--signal); margin:6px 0 26px;}
+  h1{font-size:31px; line-height:1.1; letter-spacing:-0.025em; font-weight:750; text-wrap:balance;}
+  .lede{font-size:16px; line-height:1.5; color:var(--muted); margin-top:10px; max-width:38ch; text-wrap:pretty;}
+
+  /* ---------- topics ---------- */
+  .topics{list-style:none; margin-top:24px;}
+  .topic{padding:20px 0 16px; border-top:1px solid var(--hair-soft);}
+  .topic:last-child{border-bottom:1px solid var(--hair-soft);}
+  .topic h2{font-size:19px; font-weight:680; letter-spacing:-0.01em; line-height:1.25;}
+  .topic .desc{font-size:13px; line-height:1.45; color:var(--dim); margin-top:4px; max-width:44ch;}
+  .rank{display:none; font-family:var(--mono); font-size:14px; color:var(--signal); margin-right:10px; font-weight:500;}
+
+  /* ---------- the star rail ---------- */
+  .rate{display:flex; align-items:center; gap:12px; margin-top:10px; border:0; min-width:0;}
+  .rate legend{position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap;}
+  .rail{position:relative; display:flex; flex:none; touch-action:pan-y; user-select:none; -webkit-user-select:none; margin-left:-8px;}
+  .rail input{position:absolute; opacity:0; pointer-events:none; width:1px; height:1px;}
+  .star{position:relative; width:46px; height:48px; display:grid; place-items:center; cursor:pointer; z-index:1;}
+  .star svg{grid-area:1/1; width:30px; height:30px;}
+  .star .m{color:var(--ground);} /* solid backing so the axon never shows through a hollow star */
+  .star .o{color:var(--hair); transition:color .18s var(--e-quart);}
+  .star .f{color:var(--signal); opacity:0; transform:scale(.4);
+    transition:opacity .2s var(--e-quart), transform .34s var(--e-expo); transition-delay:var(--dl, 0ms);}
+  .star.on .f{opacity:1; transform:scale(1);}
+  .star.on .o{color:transparent; transition-delay:var(--dl, 0ms);}
+  @media (hover:hover){ .rail:hover .star:not(.on) .o{color:oklch(0.43 0.012 240);} }
+  .star:has(input:focus-visible){outline:2px solid var(--signal); outline-offset:-4px; border-radius:10px;}
+  /* the axon behind the stars: the signal travels along it to the chosen star */
+  .axon{position:absolute; left:31px; right:31px; top:50%; height:2px; margin-top:-1px; background:var(--hair-soft); z-index:0;}
+  .axon i{position:absolute; inset:0; background:var(--signal-low); transform-origin:left center;
+    transform:scaleX(var(--p, 0)); transition:transform .4s var(--e-quart);}
+  .spark{position:absolute; top:50%; left:0; width:10px; height:10px; margin:-5px 0 0 -5px; border-radius:50%;
+    background:var(--signal); box-shadow:0 0 12px 3px oklch(0.800 0.125 210 / .55); opacity:0; pointer-events:none; z-index:2;}
+  .word{font-size:14px; font-weight:600; color:var(--dim); min-width:0; transition:color .2s var(--e-quart);}
+  .topic.rated .word{color:var(--ink);}
+  .topic.top .word{color:var(--signal);}
+
+  /* ---------- bottom bar: within thumb reach ---------- */
+  .bar{position:fixed; left:0; right:0; bottom:0; z-index:var(--z-bar);
+    padding:22px 20px calc(16px + env(safe-area-inset-bottom));
+    background:linear-gradient(to top, var(--ground) 64%, oklch(0.145 0.005 240 / 0));}
+  .bar .in{max-width:520px; margin:0 auto;}
+  .status{font-size:13px; color:var(--dim); text-align:center; margin-bottom:10px; min-height:1.3em;}
+  .status.err{color:var(--warn);}
+  button.go{width:100%; min-height:56px; border:0; border-radius:12px; background:var(--signal); color:oklch(0.17 0.03 210);
+    font:inherit; font-size:17px; font-weight:700; cursor:pointer;
+    transition:opacity .2s var(--e-quart), transform .12s var(--e-quart);}
+  button.go:active{transform:scale(.98);}
+  button.go:disabled{opacity:.3; cursor:default; transform:none;}
+  button.go:focus-visible{outline:2px solid var(--ink); outline-offset:3px;}
+  button.go[aria-busy="true"]{opacity:.7;}
+  button.ghost{display:block; margin:18px auto 0; background:none; border:0; color:var(--muted); font:inherit; font-size:15px;
+    text-decoration:underline; text-underline-offset:3px; cursor:pointer; padding:12px;}
+
+  /* ---------- sent: your lineup ---------- */
+  .done{display:none;}
+  body.sent .ask, body.sent .bar{display:none;}
+  body.sent .done{display:block;}
+  body.sent main{padding-bottom:calc(40px + env(safe-area-inset-bottom));}
+  body.sent .rank{display:inline;}
+  body.sent .rail{pointer-events:none;}
+  body.sent .topic:not(.rated){opacity:.45;}
+
+  ::view-transition-group(*){animation-duration:.55s; animation-timing-function:cubic-bezier(0.16, 1, 0.3, 1);}
+
+  @media (prefers-reduced-motion: reduce){
+    *, *::before, *::after{transition:none !important; animation:none !important;}
+    ::view-transition-group(*), ::view-transition-old(*), ::view-transition-new(*){animation:none !important;}
+  }
 </style>
 </head>
 <body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <!-- Phosphor Icons "star" regular + fill (MIT) -->
+  <symbol id="so" viewBox="0 0 256 256"><path fill="currentColor" d="M239.18,97.26A16.38,16.38,0,0,0,224.92,86l-59-4.76L143.14,26.15a16.36,16.36,0,0,0-30.27,0L90.11,81.23,31.08,86a16.46,16.460,0,0,0-9.37,28.86l45,38.83L53,211.75a16.38,16.38,0,0,0,24.5,17.82L128,198.49l50.53,31.08A16.4,16.4,0,0,0,203,211.75l-13.76-58.07,45-38.83A16.43,16.43,0,0,0,239.18,97.26Zm-15.34,5.47-48.7,42a8,8,0,0,0-2.56,7.91l14.88,62.8a.37.37,0,0,1-.17.48c-.18.14-.23.11-.38,0l-54.72-33.65a8,8,0,0,0-8.38,0L69.09,215.94c-.15.09-.19.12-.38,0a.37.37,0,0,1-.17-.48l14.88-62.8a8,8,0,0,0-2.56-7.91l-48.7-42c-.12-.1-.23-.19-.13-.5s.18-.27.33-.29l63.92-5.16A8,8,0,0,0,103,91.86l24.62-59.61c.08-.17.11-.25.35-.25s.27.08.35.25L153,91.86a8,8,0,0,0,6.75,4.92l63.92,5.16c.15,0,.24,0,.33.29S224,102.63,223.84,102.73Z"/></symbol>
+  <symbol id="sf" viewBox="0 0 256 256"><path fill="currentColor" d="M234.29,114.85l-45,38.83L203,211.75a16.4,16.4,0,0,1-24.5,17.82L128,198.49,77.47,229.57A16.4,16.4,0,0,1,53,211.75l13.76-58.07-45-38.83A16.46,16.46,0,0,1,31.08,86l59-4.76,22.76-55.08a16.36,16.36,0,0,1,30.27,0l22.75,55.08,59,4.76a16.46,16.46,0,0,1,9.37,28.86Z"/></symbol>
+</svg>
+
 <main>
   <div class="brand"></div>
-  <div class="tag">Our Minds Will Be Drug Tested</div>
-  <h1>What should I teach next?</h1>
-  <p class="lede">Pick the one you would most want to hear about. It takes five seconds.</p>
+  <header class="ask">
+    <h1>What should I teach next?</h1>
+    <p class="lede">Rate each topic. Five stars means teach this one next.</p>
+  </header>
+  <header class="done" role="status">
+    <h1>Got it. Thank you.</h1>
+    <p class="lede">Here&rsquo;s your lineup. The topic the room rates highest is the one I build next.</p>
+  </header>
 
   <form id="f" novalidate>
-    <fieldset>
-      <legend>Choose one</legend>
-      <!-- PLACEHOLDER topics: swap for Devon's real choices -->
-      <label class="opt"><input type="radio" name="topic" value="peptides"><span class="dot"></span>
-        <span class="t">Peptides<small>What they are and why athletes use them</small></span></label>
-      <label class="opt"><input type="radio" name="topic" value="drug-tests"><span class="dot"></span>
-        <span class="t">How drug tests actually work<small>What a lab can and cannot see</small></span></label>
-      <label class="opt"><input type="radio" name="topic" value="sleep-memory"><span class="dot"></span>
-        <span class="t">Sleep and memory<small>What happens to studying overnight</small></span></label>
-      <label class="opt"><input type="radio" name="topic" value="fda"><span class="dot"></span>
-        <span class="t">How a drug gets approved<small>From lab to pharmacy shelf</small></span></label>
-      <label class="opt"><input type="radio" name="topic" value="other" id="otherRadio"><span class="dot"></span>
-        <span class="t">Something else</span></label>
-      <input id="otherText" name="other" type="text" maxlength="120" placeholder="Tell me the topic" autocomplete="off">
-    </fieldset>
-    <button type="submit" id="go" disabled>Send my pick</button>
-    <p class="fine">Anonymous. No name or email needed.</p>
+    <ol class="topics" id="topics"></ol>
   </form>
 
-  <div id="done" role="status">
-    <h2>Got it. Thank you.</h2>
-    <p>The most-picked topic is what I'll build next.</p>
+  <div class="done">
+    <button class="ghost" type="button" id="edit">Change my ratings</button>
   </div>
 </main>
+
+<div class="bar">
+  <div class="in">
+    <p class="status" id="status" aria-live="polite">Rate at least one topic</p>
+    <button class="go" id="go" form="f" type="submit" disabled>Send my ratings</button>
+  </div>
+</div>
+
 <script>
-  var f = document.getElementById('f'), go = document.getElementById('go'), other = document.getElementById('otherText');
-  function ready() {
-    var pick = f.querySelector('input[name="topic"]:checked');
-    go.disabled = !pick || (pick.value === 'other' && !other.value.trim());
+(function () {
+  var ENDPOINT = '__ENDPOINT__';
+  var TOPICS = [
+    { id: 'peptides', name: 'Peptides', desc: 'Short protein chains like BPC-157 and GLP-1 drugs such as Ozempic. What is proven and what is hype.' },
+    { id: 'skincare', name: 'Pharmaceutical Skincare', desc: 'Tretinoin, retinoids and other prescription actives, and how they actually change skin.' },
+    { id: 'peds', name: 'Performance Enhancing Drugs', desc: 'Steroids, EPO and SARMs: what they do in the body and how drug tests catch them.' },
+    { id: 'height', name: 'Height Pharmacology', desc: 'Growth hormone, growth plates, and whether any drug can really add height.' }
+  ];
+  var WORDS = ['Tap to rate', 'Not for me', 'Probably not', 'Maybe', 'Really want it', 'Teach this next'];
+  var KEY = 'nb-next-v1';
+  var reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+  var list = document.getElementById('topics'), go = document.getElementById('go'), status = document.getElementById('status');
+  var state = load();
+  if (!state.client) state.client = makeId();
+  if (!state.ratings) state.ratings = {};
+  save();
+
+  function load() { try { return JSON.parse(localStorage.getItem(KEY)) || {}; } catch (e) { return {}; } }
+  function save() { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} }
+  function makeId() {
+    if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
+    return 'c' + Date.now().toString(36) + Math.random().toString(36).slice(2, 12);
   }
-  f.addEventListener('change', function (e) { ready(); if (e.target.id === 'otherRadio') other.focus(); });
-  other.addEventListener('input', ready);
-  f.addEventListener('submit', function (e) {
-    e.preventDefault();
-    if (go.disabled) return;
-    // PLACEHOLDER: answers are not stored yet. Hook a real endpoint in here before the talk.
-    document.body.classList.add('sent');
+
+  // ---------- build the rows ----------
+  TOPICS.forEach(function (t) {
+    var li = document.createElement('li');
+    li.className = 'topic';
+    li.id = 't-' + t.id;
+    li.style.viewTransitionName = 't-' + t.id;
+    var stars = '';
+    for (var k = 1; k <= 5; k++) {
+      stars += '<label class="star"><input type="radio" name="' + t.id + '" value="' + k + '" aria-label="' + k + (k === 1 ? ' star, ' : ' stars, ') + WORDS[k] + '">' +
+        '<svg class="m" aria-hidden="true"><use href="#sf"/></svg><svg class="o" aria-hidden="true"><use href="#so"/></svg><svg class="f" aria-hidden="true"><use href="#sf"/></svg></label>';
+    }
+    li.innerHTML = '<h2><span class="rank"></span>' + t.name + '</h2><p class="desc">' + t.desc + '</p>' +
+      '<fieldset class="rate"><legend>How much do you want to learn about ' + t.name + '?</legend>' +
+      '<div class="rail"><div class="axon"><i></i></div><span class="spark"></span>' + stars + '</div>' +
+      '<span class="word" aria-hidden="true">' + WORDS[0] + '</span></fieldset>';
+    list.appendChild(li);
+    wire(li, t.id);
+    if (state.ratings[t.id]) paint(li, state.ratings[t.id], 0, false);
   });
+
+  // ---------- rating: tap, drag across, or keyboard ----------
+  function wire(li, id) {
+    var rail = li.querySelector('.rail');
+    var down = false;
+    function at(x) {
+      var r = rail.getBoundingClientRect();
+      return Math.max(1, Math.min(5, Math.ceil((x - r.left) / (r.width / 5))));
+    }
+    rail.addEventListener('pointerdown', function (e) {
+      if (e.button > 0) return;
+      down = true;
+      set(li, id, at(e.clientX));
+    });
+    rail.addEventListener('pointermove', function (e) {
+      if (!down) return;
+      if (!rail.hasPointerCapture(e.pointerId)) { try { rail.setPointerCapture(e.pointerId); } catch (_) {} }
+      set(li, id, at(e.clientX));
+    });
+    ['pointerup', 'pointercancel', 'lostpointercapture'].forEach(function (ev) { rail.addEventListener(ev, function () { down = false; }); });
+    // pointer input already rated; stop the label click from re-firing it
+    rail.addEventListener('click', function (e) { if (e.detail > 0) e.preventDefault(); });
+    rail.addEventListener('change', function (e) { set(li, id, +e.target.value); });
+  }
+
+  function set(li, id, v) {
+    var prev = state.ratings[id] || 0;
+    if (v === prev) return;
+    state.ratings[id] = v;
+    save();
+    paint(li, v, prev, true);
+    if (navigator.vibrate && !reduce.matches) { try { navigator.vibrate(7); } catch (_) {} }
+    refresh();
+  }
+
+  function paint(li, v, prev, animate) {
+    var stars = li.querySelectorAll('.star');
+    var up = v > prev;
+    stars.forEach(function (s, i) {
+      var k = i + 1;
+      // rising: the signal travels outward star by star; falling: it drains back from the end
+      var delay = !animate || reduce.matches ? 0 : up ? Math.max(0, k - prev - 1) * 55 : Math.max(0, prev - k) * 35;
+      s.style.setProperty('--dl', delay + 'ms');
+      s.classList.toggle('on', k <= v);
+      s.querySelector('input').checked = k === v;
+    });
+    li.querySelector('.axon').style.setProperty('--p', v > 1 ? (v - 1) / 4 : 0);
+    li.querySelector('.word').textContent = WORDS[v];
+    li.classList.toggle('rated', v > 0);
+    li.classList.toggle('top', v === 5);
+    if (animate && up && !reduce.matches) fire(li, prev, v);
+  }
+
+  // a spark runs along the axon and each star flashes as the signal reaches it
+  function fire(li, from, to) {
+    var spark = li.querySelector('.spark'), stars = li.querySelectorAll('.star');
+    var rail = li.querySelector('.rail').getBoundingClientRect();
+    var cx = function (k) { var r = stars[k - 1].getBoundingClientRect(); return r.left - rail.left + r.width / 2; };
+    var start = Math.max(1, from), a = cx(start), b = cx(to), travel = (to - start) * 55;
+    spark.animate([
+      { transform: 'translateX(' + a + 'px) scale(.5)', opacity: 0 },
+      { transform: 'translateX(' + a + 'px) scale(1)', opacity: 1, offset: 0.1 },
+      { transform: 'translateX(' + b + 'px) scale(1)', opacity: 1, offset: 0.75 },
+      { transform: 'translateX(' + b + 'px) scale(2)', opacity: 0 }
+    ], { duration: travel + 360, easing: 'cubic-bezier(0.25, 1, 0.5, 1)' });
+    for (var k = from + 1; k <= to; k++) {
+      stars[k - 1].querySelector('.f').animate([
+        { transform: 'scale(1)', filter: 'drop-shadow(0 0 0 transparent)' },
+        { transform: 'scale(1.24)', filter: 'drop-shadow(0 0 7px oklch(0.800 0.125 210 / .85))' },
+        { transform: 'scale(1)', filter: 'drop-shadow(0 0 0 transparent)' }
+      ], { duration: 440, delay: (k - from - 1) * 55 + 70, easing: 'cubic-bezier(0.16, 1, 0.3, 1)' });
+    }
+  }
+
+  function rated() { return TOPICS.filter(function (t) { return state.ratings[t.id] > 0; }).length; }
+  function refresh() {
+    var n = rated();
+    go.disabled = n === 0;
+    status.className = 'status';
+    status.textContent = n === 0 ? 'Rate at least one topic' : n === TOPICS.length ? 'All four rated' : n + ' of 4 rated';
+  }
+
+  // ---------- send ----------
+  document.getElementById('f').addEventListener('submit', function (e) {
+    e.preventDefault();
+    if (go.disabled || go.getAttribute('aria-busy') === 'true') return;
+    go.setAttribute('aria-busy', 'true');
+    go.textContent = 'Sending…';
+    status.className = 'status';
+    status.textContent = '';
+    send().then(function () {
+      state.sent = true; save();
+      showLineup();
+    }).catch(function () {
+      status.className = 'status err';
+      status.textContent = 'Couldn’t send. Check your signal and try again.';
+    }).then(function () {
+      go.removeAttribute('aria-busy');
+      go.textContent = 'Send my ratings';
+    });
+  });
+
+  function send() {
+    var body = JSON.stringify({ client: state.client, ratings: state.ratings });
+    if (ENDPOINT.indexOf('https://') !== 0) {
+      console.warn('[next] no endpoint configured; ratings stay on this device', body);
+      return new Promise(function (r) { setTimeout(r, 450); });
+    }
+    // text/plain keeps this a "simple" request, so Apps Script needs no CORS preflight
+    return fetch(ENDPOINT, { method: 'POST', body: body, headers: { 'Content-Type': 'text/plain;charset=utf-8' } })
+      .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
+      .then(function (j) { if (!j || !j.ok) throw new Error((j && j.error) || 'rejected'); });
+  }
+
+  // after sending, the rows glide into your ranked order
+  function transition(fn) {
+    if (document.startViewTransition && !reduce.matches) document.startViewTransition(fn);
+    else fn();
+  }
+  function showLineup() {
+    transition(function () {
+      document.body.classList.add('sent');
+      var order = TOPICS.slice().sort(function (a, b) { return (state.ratings[b.id] || 0) - (state.ratings[a.id] || 0); });
+      order.forEach(function (t, i) {
+        var li = document.getElementById('t-' + t.id);
+        li.querySelector('.rank').textContent = state.ratings[t.id] ? String(i + 1) : '';
+        list.appendChild(li);
+      });
+      window.scrollTo(0, 0);
+    });
+  }
+  document.getElementById('edit').addEventListener('click', function () {
+    transition(function () {
+      document.body.classList.remove('sent');
+      TOPICS.forEach(function (t) { list.appendChild(document.getElementById('t-' + t.id)); });
+    });
+  });
+
+  refresh();
+  if (state.sent && rated()) showLineup();
+})();
 </script>
 </body>
 </html>

@@ -5,7 +5,8 @@
 #   ~/Desktop/Web-Files/neural-brain.html   -> local copy for the projector
 #   ~/Desktop/Web-Files/neural-brain-qr.png -> QR code for the slides
 #   docs/next/index.html                    -> "what should I teach next" form (src/next.html)
-#   ~/Desktop/Web-Files/next-topic-form.html + next-topic-qr.png
+#   docs/results/index.html                 -> live ratings dashboard (src/results.html)
+#   ~/Desktop/Web-Files/next-topic-{form,results}.html + next-topic-qr.png
 set -e
 cd "$(dirname "$0")"
 URL="https://dayvonmp4.github.io/neural-brain/"
@@ -28,9 +29,17 @@ fs.writeFileSync(local, html);
 await QRCode.toFile(`${os.homedir()}/Desktop/Web-Files/neural-brain-qr.png`, url, { width: 1024, margin: 2 });
 console.log('wrote docs/index.html + ' + local, Math.round(html.length / 1024) + ' KB');
 const nextUrl = url + 'next/';
+// Ratings pipeline: the form posts to, and the results page reads from, the Apps Script web app.
+const endpoint = fs.existsSync('apps-script/endpoint.txt') ? fs.readFileSync('apps-script/endpoint.txt', 'utf8').trim() : '';
+const formQr = await QRCode.toString(nextUrl, { type: 'svg', margin: 0, color: { dark: '#020409', light: '#ffffff' } });
+const next = fs.readFileSync('src/next.html', 'utf8').replaceAll('__ENDPOINT__', endpoint);
+const results = fs.readFileSync('src/results.html', 'utf8').replaceAll('__ENDPOINT__', endpoint).replace('<!--__FORM_QR__-->', formQr);
 fs.mkdirSync('docs/next', { recursive: true });
-fs.copyFileSync('src/next.html', 'docs/next/index.html');
-fs.copyFileSync('src/next.html', `${os.homedir()}/Desktop/Web-Files/next-topic-form.html`);
+fs.mkdirSync('docs/results', { recursive: true });
+fs.writeFileSync('docs/next/index.html', next);
+fs.writeFileSync('docs/results/index.html', results);
+fs.writeFileSync(`${os.homedir()}/Desktop/Web-Files/next-topic-form.html`, next);
+fs.writeFileSync(`${os.homedir()}/Desktop/Web-Files/next-topic-results.html`, results);
 await QRCode.toFile(`${os.homedir()}/Desktop/Web-Files/next-topic-qr.png`, nextUrl, { width: 1024, margin: 2 });
-console.log('wrote docs/next/index.html -> ' + nextUrl);
+console.log('wrote docs/next + docs/results' + (endpoint ? ' -> ' + endpoint.slice(0, 60) + '...' : ' (no endpoint yet: form keeps ratings on-device)'));
 EOF
