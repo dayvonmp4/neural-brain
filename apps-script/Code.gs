@@ -1,8 +1,8 @@
 /**
  * Ratings pipeline for the "What should I teach next?" form.
  *
- *   form (/next/)  --POST-->  this web app  -->  Google Sheet (one row per phone)
- *   results page (/results/)  --GET-->  this web app  -->  averages + star counts
+ *   form (/next/)  --POST-->  this web app  -->  Devon's Google Sheet (one row per phone)
+ * Write-only: the web app never returns anyone's ratings.
  *
  * Deploy: Deploy > New deployment > Web app, Execute as: Me, Who has access: Anyone.
  * Paste the /exec URL into apps-script/endpoint.txt and run ./build.sh.
@@ -57,22 +57,9 @@ function doPost(e) {
   }
 }
 
-// Aggregates only: no client ids or timestamps leave the sheet.
+// Write-only: nothing is readable through the web app. Ratings live only in Devon's sheet.
 function doGet() {
-  var sh = sheet_();
-  var n = Math.max(0, sh.getLastRow() - 1);
-  var out = { ok: true, responses: n, topics: {}, at: new Date().toISOString() };
-  TOPICS.forEach(function (t) { out.topics[t] = { count: 0, sum: 0, dist: [0, 0, 0, 0, 0] }; });
-  if (n > 0) {
-    sh.getRange(2, 3, n, TOPICS.length).getValues().forEach(function (row) {
-      row.forEach(function (v, k) {
-        if (v === '' || v === null) return;
-        var T = out.topics[TOPICS[k]];
-        T.count++; T.sum += v; T.dist[v - 1]++;
-      });
-    });
-  }
-  return json_(out);
+  return json_({ ok: true });
 }
 
 // Run once from the editor to create the sheet and approve access.
